@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import clsx from 'clsx';
 
 function MiniAppForm({ handleSubmit }) {
-    const [selectedCheckbox, setSelectedCheckbox] = useState(null);
+    const [isSubmit, setIsSubmit] = React.useState(false);
     const [inputs, setInputs] = useState({
         key: Date.now(),
         name: "",
@@ -13,25 +14,26 @@ function MiniAppForm({ handleSubmit }) {
     })
     const [errors, setErrors] = useState({})
 
-    function handleCheckboxChange(getGender) {
-        setSelectedCheckbox(getGender)
-        setInputs((prevState) => {
-            return {
-                ...prevState,
-                gender: getGender
-            }
-        })
+    function onChangeInput(e, type) {
+        const { name, value, checked } = e.target;
+        if(type === 'checkbox' && !checked) {
+            setInputs(prevState => {
+                return {
+                    ...prevState,
+                    gender: ''
+                }
+            })
+        } else {
+            setInputs((prevState) => {
+                return {
+                    ...prevState,
+                    [name]: value,
+                }
+            })
+        }
     }
 
-    function onChangeInput(e) {
-        const { name, value } = e.target
-        setInputs((prevState) => {
-            return {
-                ...prevState,
-                [name]: value,
-            }
-        })
-    }
+    console.log('inputs', {errors, inputs})
 
     const _handleSubmit = (e) => {
         e.preventDefault()
@@ -39,7 +41,7 @@ function MiniAppForm({ handleSubmit }) {
         let flag = true
         var regex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
         if (inputs.name === "") {
-            errorsSubmit.name = "Input Name!"
+            errorsSubmit.name = true
             flag = false
         }
         if (inputs.email === "") {
@@ -68,6 +70,7 @@ function MiniAppForm({ handleSubmit }) {
             flag = false
         }
         if (!flag) {
+            setIsSubmit(true)
             setErrors(errorsSubmit)
             return;
         }
@@ -77,15 +80,21 @@ function MiniAppForm({ handleSubmit }) {
         <>
             <form type="sumit">
                 <div className='mb-6' >
-                    <label className='block mb-2 text-sm font-medium text-red-700 dark:text-red-500'>
+                    <label className={clsx(
+                        'block mb-2 text-sm font-medium ',
+                        isSubmit && errors.name && 'text-red-700 dark:text-red-500'
+                    )}>
                         Name
                         <input
-                            className='bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 block w-full p-2.5'
+                            className={clsx(
+                                'border block w-full p-2.5',
+                                isSubmit && errors.name && 'bg-red-50 border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500'
+                            )}
                             name='name'
-                            onChange={onChangeInput}
+                            onChange={(e) => onChangeInput(e, 'input')}
                         >
                         </input>
-                        {errors.name && <p className="mt-2 text-sm text-red-600 dark:text-red-500">{errors.name}</p>}
+                        {errors.name && <p className="mt-2 text-sm text-red-600 dark:text-red-500">Input Name!</p>}
                     </label>
                 </div>
                 <div className='mb-6' >
@@ -94,7 +103,7 @@ function MiniAppForm({ handleSubmit }) {
                         <input className='bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 block w-full p-2.5'
                             name='email'
                             type='email'
-                            onChange={onChangeInput}
+                            onChange={(e) => onChangeInput(e, 'input')}
                         >
                         </input>
                         {errors.email && <p className="mt-2 text-sm text-red-600 dark:text-red-500">{errors.email}.</p>}
@@ -105,7 +114,7 @@ function MiniAppForm({ handleSubmit }) {
                         Country
                         <input className='bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 block w-full p-2.5'
                             name='country'
-                            onChange={onChangeInput}
+                            onChange={(e) => onChangeInput(e, 'input')}
                         >
                         </input>
                         {errors.country && <p className="mt-2 text-sm text-red-600 dark:text-red-500">{errors.country}</p>}
@@ -117,7 +126,7 @@ function MiniAppForm({ handleSubmit }) {
                         <input className='bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 block w-full p-2.5'
                             name="password"
                             type='password'
-                            onChange={onChangeInput}
+                            onChange={(e) => onChangeInput(e, 'input')}
                         >
                         </input>
                         {errors.password && <p className="mt-2 text-sm text-red-600 dark:text-red-500">{errors.password}</p>}
@@ -129,7 +138,7 @@ function MiniAppForm({ handleSubmit }) {
                         <input className='bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 block w-full p-2.5'
                             name='repassword'
                             type='password'
-                            onChange={onChangeInput}
+                            onChange={(e) => onChangeInput(e, 'input')}
                         >
                         </input>
                         {errors.repassword && <p className="mt-2 text-sm text-red-600 dark:text-red-500">{errors.repassword}</p>}
@@ -144,9 +153,11 @@ function MiniAppForm({ handleSubmit }) {
                                 >Male</label>
                                 <input
                                     className='gender-check p-3 ml-2'
+                                    name="gender"
+                                    value="Male"
                                     type='checkbox'
-                                    checked={selectedCheckbox === "Male"}
-                                    onChange={() => { handleCheckboxChange("Male") }}
+                                    checked={inputs.gender === "Male"}
+                                    onChange={(e) => onChangeInput(e, 'checkbox')}
                                 >
                                 </input>
                             </div>
@@ -157,9 +168,11 @@ function MiniAppForm({ handleSubmit }) {
                                 </label>
                                 <input
                                     type='checkbox'
+                                    name="gender"
                                     className='gender-check p-3 ml-2'
-                                    checked={selectedCheckbox === "Female"}
-                                    onChange={() => { handleCheckboxChange("Female") }}
+                                    value="Female"
+                                    checked={inputs.gender === "Female"}
+                                    onChange={(e) => onChangeInput(e, 'checkbox')}
                                 >
                                 </input>
                             </div>
